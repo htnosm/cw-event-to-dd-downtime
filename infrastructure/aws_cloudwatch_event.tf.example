@@ -1,0 +1,83 @@
+variable "apex_function_cw-event-to-dd-downtime" {}
+
+# "Input Transformer"
+resource "aws_cloudwatch_event_rule" "cw-event-to-dd-downtime_cw_event_input_transformer" {
+  name        = "cw-event-to-dd-downtime_input_transformer"
+  description = "Event to set Datadog downtimes"
+  event_pattern  = <<_EOF
+{
+  "source": [
+    "aws.autoscaling"
+  ],
+  "detail-type": [
+    "EC2 Instance Launch Successful",
+    "EC2 Instance Terminate Successful"
+  ]
+}
+_EOF
+}
+
+resource "aws_cloudwatch_event_target" "cw-event-to-dd-downtime_cw_event_target_input_transformer" {
+  rule = "${aws_cloudwatch_event_rule.cw-event-to-dd-downtime_cw_event_input_transformer.name}"
+  target_id = "cw-event-to-dd-downtime_input_transformer"
+  arn = "${var.apex_function_cw-event-to-dd-downtime}"
+  input_transformer {
+    input_paths {
+      "EC2InstanceId" = "$.detail.EC2InstanceId",
+      "AutoScalingGroupName" = "$.detail.AutoScalingGroupName"
+    }
+    input_template = <<_EOF
+"{ \"ConvertHost\": true, \"DownTimeTZ\": \"Asia/Tokyo\", \"TimeRangeMinutes\": 15, \"Scopes\": [ \"['host:<EC2InstanceId>', 'hoge_example.com']\", \"['loadbalancername:prd-web-elb', 'hoge_example.com']\" ], \"Message\": \" @slack-notice \" }"
+_EOF
+  }
+}
+
+resource "aws_lambda_permission" "lambda_permittion_input_transformer" {
+  statement_id  = "lambda_permittion__input_transformer"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_cloudwatch_event_target.cw-event-to-dd-downtime_cw_event_target_input_transformer.arn}"
+  principal     = "events.amazonaws.com"
+  source_arn    = "${aws_cloudwatch_event_rule.cw-event-to-dd-downtime_cw_event_input_transformer.arn}"
+}
+
+output "cw_event_input_transformer" {
+  value = "${aws_cloudwatch_event_rule.cw-event-to-dd-downtime_cw_event_input_transformer.name}"
+}
+
+# "Constant"
+resource "aws_cloudwatch_event_rule" "cw-event-to-dd-downtime_cw_event_constant" {
+  name        = "cw-event-to-dd-downtime_constant"
+  description = "Event to set Datadog downtimes"
+  event_pattern  = <<_EOF
+{
+  "source": [
+    "aws.autoscaling"
+  ],
+  "detail-type": [
+    "EC2 Instance Launch Successful",
+    "EC2 Instance Terminate Successful"
+  ]
+}
+_EOF
+}
+
+resource "aws_cloudwatch_event_target" "cw-event-to-dd-downtime_cw_event_target_constant" {
+  rule = "${aws_cloudwatch_event_rule.cw-event-to-dd-downtime_cw_event_constant.name}"
+  target_id = "cw-event-to-dd-downtime_constant"
+  arn = "${var.apex_function_cw-event-to-dd-downtime}"
+  input = <<_EOF
+{ "ConvertHost": true, "DownTimeTZ": "Asia/Tokyo", "TimeRangeMinutes": 15, "Scopes": [ "['host:<EC2InstanceId>', 'hoge_example.com']", "['loadbalancername:prd-web-elb', 'hoge_example.com']" ], "Message": " @slack-notice " }
+_EOF
+}
+
+resource "aws_lambda_permission" "lambda_permittion_constant" {
+  statement_id  = "lambda_permittion__constant"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_cloudwatch_event_target.cw-event-to-dd-downtime_cw_event_target_constant.arn}"
+  principal     = "events.amazonaws.com"
+  source_arn    = "${aws_cloudwatch_event_rule.cw-event-to-dd-downtime_cw_event_constant.arn}"
+}
+
+output "cw_event_constant" {
+  value = "${aws_cloudwatch_event_rule.cw-event-to-dd-downtime_cw_event_constant.name}"
+}

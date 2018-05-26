@@ -1,0 +1,21 @@
+{
+  "description": "CloudWatch event to set Datadog downtimes",
+  "runtime": "python3.6",
+  "handler": "main.lambda_handler",
+  "timeout": 300,
+  "hooks": {
+    "build": "pip install -r requirements.txt -t ./site-packages"
+  },
+  "tags": {
+    "Name": "cw-event-to-dd-downtime"
+  },
+  "kms_arn": "",
+  "environment": {
+    "PYTHONPATH": "/var/runtime:/var/task/site-packages",
+    "DownTimeTZ": "UTC",
+    "TimeRangeMinutes": "30",
+    "SkipMinutes": "5",
+    "DatadogApiKey": "",
+    "DatadogApplicationKey": ""
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "nameTemplate": "{{.Function.Name}}",
+  "name": "cw-event-to-dd-downtime",
+  "description": "CloudWatch event to set Datadog downtimes",
+  "memory": 128,
+  "timeout": 5,
+  "role": "",
+  "environment": {}
+}

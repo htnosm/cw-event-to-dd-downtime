@@ -1,0 +1,8 @@
+{
+  "Cancel": true,
+  "Scopes": [
+    "['host:i-xxxxxxxxxxxxxxxxx', 'aws_account_name:hoge']",
+    "['aws_account_name:fuga']"
+  ],
+  "Message": " @slack-notice "
+}
